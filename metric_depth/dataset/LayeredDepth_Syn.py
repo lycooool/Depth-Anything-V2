@@ -57,6 +57,9 @@ class LayeredDepth_Syn(Dataset):
             if key not in sample:
                 raise KeyError(f"{key} not found in dataset sample. Available keys: {list(sample.keys())}")
             
+            depth_pil = sample[key]
+            # ⚠️ 保留 16-bit：轉 numpy.uint16
+            depth_map = np.array(depth_pil, dtype=np.uint16).astype(np.float32)
             depth_map = np.array(sample[key]).astype(np.float32)
             depth_layers.append(depth_map)
         
@@ -71,12 +74,17 @@ class LayeredDepth_Syn(Dataset):
         out['image'] = torch.from_numpy(out['image'])  # [3,H,W]
 
         # ✅ 改成 [N_layers, H, W]，和模型輸出對齊
-        depth = torch.from_numpy(out['depth']).permute(2, 0, 1).contiguous()  # [4,H,W]
-        out['depth'] = torch.from_numpy(out['depth'])  # [layers,H,W]
+        depth_tensor = torch.from_numpy(out['depth']).permute(2, 0, 1).contiguous().float()
+
+        # === 5️⃣ 建立 mask ===
+        valid_mask = (depth_tensor > 0).float()
+
+        # 每個輸出分開
+        for i, layer_id in enumerate(self.use_layers):
+            out[f'd{layer_id}'] = depth_tensor[i]
+            out[f'd{layer_id}_valid_mask'] = valid_mask[i]
+
         
-        # # === 5️⃣ 建立 valid mask（非 NaN 像素）===
-        # out['valid_mask'] = (~torch.isnan(out['depth'])).float()
-        # out['depth'][torch.isnan(out['depth'])] = 0
         
         return out
         
