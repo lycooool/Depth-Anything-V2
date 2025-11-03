@@ -9,7 +9,7 @@ from datasets import load_dataset
 
 
 class LayeredDepth_Syn(Dataset):
-    def __init__(self, mode='train', size=(518, 518), use_layers=(1, 3, 5, 7)):
+    def __init__(self, mode='train', size=(518, 518), use_layers=(1, 2, 3, 4, 5, 6, 7, 8)):
         """
         mode: 'train' 或 'val'，決定使用的 dataset split
         use_layers: 要使用哪些層的深度，例如 (1,3,5,7)
@@ -60,11 +60,21 @@ class LayeredDepth_Syn(Dataset):
             depth_pil = sample[key]
             # ⚠️ 保留 16-bit：轉 numpy.uint16
             depth_map = np.array(depth_pil, dtype=np.uint16).astype(np.float32)
-            depth_map = np.array(sample[key]).astype(np.float32)
+            depth_map = np.array(sample[key]).astype(np.float32) / 1000.0
             depth_layers.append(depth_map)
         
         # shape: [H, W, N_layers]
         depth = np.stack(depth_layers, axis=-1)
+
+
+
+        # === ✅ 3️⃣ 執行繼承（inherit missing depth） ===
+        for i in range(1, depth.shape[-1]):  # 從第2層開始
+            prev_layer = depth[..., i - 1]
+            curr_layer = depth[..., i]
+            missing_mask = (curr_layer <= 0)
+            depth[..., i][missing_mask] = prev_layer[missing_mask]
+
 
         # === 3️⃣ 套用 Transform（resize + normalize + prepare）===
         out = self.transform({'image': image, 'depth': depth})
@@ -80,7 +90,7 @@ class LayeredDepth_Syn(Dataset):
         valid_mask = (depth_tensor > 0).float()
 
         # 每個輸出分開
-        for i, layer_id in enumerate(self.use_layers):
+        for i, layer_id in enumerate((1, 3, 5, 7)):
             out[f'd{layer_id}'] = depth_tensor[i]
             out[f'd{layer_id}_valid_mask'] = valid_mask[i]
 

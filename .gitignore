@@ -2,3 +2,8 @@ testdata
 checkpoints
 __pycache__
 test_result
+result_finetune_1
+result_finetune_1_new_data
+visualized_samples_two_rows
+val_vis
+result_finetune_2

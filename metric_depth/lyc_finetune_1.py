@@ -36,7 +36,7 @@ parser.add_argument('--encoder', default='vitl', choices=['vits', 'vitb', 'vitl'
 #parser.add_argument('--dataset', default='hypersim', choices=['hypersim', 'vkitti'])
 parser.add_argument('--img-size', default=518, type=int)
 parser.add_argument('--min-depth', default=0.001, type=float)
-parser.add_argument('--max-depth', default=20, type=float)
+parser.add_argument('--max-depth', default=30, type=float)
 parser.add_argument('--epochs', default=40, type=int)
 parser.add_argument('--bs', default=4, type=int)
 parser.add_argument('--lr', default=0.000005, type=float)
@@ -201,10 +201,10 @@ def main():
             depth_l5, valid_mask_l5 = sample['d5'].cuda(), sample['d5_valid_mask'].cuda()
             depth_l7, valid_mask_l7 = sample['d7'].cuda(), sample['d7_valid_mask'].cuda()
             # 轉成公尺
-            depth_l1 = depth_l1 / 1000.0
-            depth_l3 = depth_l3 / 1000.0
-            depth_l5 = depth_l5 / 1000.0
-            depth_l7 = depth_l7 / 1000.0
+            # depth_l1 = depth_l1 / 1000.0
+            # depth_l3 = depth_l3 / 1000.0
+            # depth_l5 = depth_l5 / 1000.0
+            # depth_l7 = depth_l7 / 1000.0
 
             if random.random() < 0.5:
                 img = img.flip(-1)
@@ -363,10 +363,10 @@ def main():
             depth_l5, valid_mask_l5 = sample['d5'].cuda(), sample['d5_valid_mask'].cuda()
             depth_l7, valid_mask_l7 = sample['d7'].cuda(), sample['d7_valid_mask'].cuda()
             # 轉成公尺
-            depth_l1 = depth_l1 / 1000.0
-            depth_l3 = depth_l3 / 1000.0
-            depth_l5 = depth_l5 / 1000.0
-            depth_l7 = depth_l7 / 1000.0
+            # depth_l1 = depth_l1 / 1000.0
+            # depth_l3 = depth_l3 / 1000.0
+            # depth_l5 = depth_l5 / 1000.0
+            # depth_l7 = depth_l7 / 1000.0
 
             with torch.no_grad():
                 preds = model(img)
